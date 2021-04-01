@@ -1,0 +1,101 @@
+import time
+from string import zfill
+import RPi.GPIO as GPIO # importiruem chob rabotalo
+#
+GPIO.setmode(GPIO.BCM)  # numeraziya pinov
+chan_list = [10, 9, 11, 5, 6, 13, 19, 26]
+GPIO.setup(chan_list, GPIO.OUT)
+
+#def#
+    
+def GPIO_to_number(ledNumber):
+    return chan_list[ledNumber]
+
+def OffLight():
+    for i in range (0, 8):
+        GPIO.output(GPIO_to_number(i), 0)
+    
+
+def lightUp(ledNumber, period):
+    ledNumber = GPIO_to_number(ledNumber)
+    GPIO.output(ledNumber, 1)
+    time.sleep(period)
+    GPIO.output(ledNumber, 0)
+
+def darkUp(ledNumber, period):
+    ledNumber = GPIO_to_number(ledNumber)
+    GPIO.output(ledNumber, 0)
+    time.sleep(period)
+    GPIO.output(ledNumber, 1)
+
+def blink(ledNumber, blinkCount, blinkPeriod):
+    for i in range (0, blinkCount):
+        lightUp(ledNumber, blinkPeriod)
+        time.sleep(blinkPeriod)
+
+
+def runningLight(count, period):
+    for i in range(0, count):
+        for j in range(0, 8):
+            lightUp(j, period)
+
+def runningDark(count, period):
+    for i in range(0, 8):
+        GPIO.output(GPIO_to_number(i), 1)
+    for i in range(0, count):
+        for j in range(0, 8):
+            darkUp(j, period)
+
+def decToBinList(decNumber):
+    b = 1
+    a = [0, 0, 0, 0, 0, 0, 0, 0]
+
+    for i in range(0, 8):
+        if (b & (decNumber >> i) == 1):
+            a[7 - i] = 1
+
+    return a
+
+def lightNumber(number):
+    bin_list = decToBinList(number)
+    for i in range (0, 8):
+        GPIO.output(GPIO_to_number(i), bin_list[7 - i]) 
+    
+
+def runningPattern(pattern, direction):
+    lightNumber(pattern)
+    if direction >= 0:
+        lightNumber(pattern >> direction)
+    else:
+        lightNumber(pattern << abs(direction))
+    OffLight()
+    
+    
+def script1():
+
+    number = 0
+    while (True):
+        print()
+        number = int(input())
+        if number == -1:
+            break
+        lightNumber(number)
+
+def script2():
+    print(111)
+    repetitionsNumber = int(input())
+    for i in range (0, repetitionsNumber):
+        for j in range (0, 255):
+            time.sleep(0.05)
+            lightNumber(j)
+        for j in range (255, 0, -1):
+            time.sleep(0.05)
+            lightNumber(j)
+#section code
+try:  
+    script1()
+except(ValueError, Exception):
+    print(666)
+finally:
+    OffLight()
+    GPIO.cleanup()
